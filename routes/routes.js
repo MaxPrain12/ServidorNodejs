@@ -221,7 +221,7 @@ router.post('/post/img', fileUpload, (req, res) => {
 
 })
 
-router.get('/post/userpublicimg', (req, res) => {
+router.get('/get/userpublicimg', (req, res) => {
 
     const value = req.query.id_user
     console.log('el usuario de la peticion es: ' + value)
@@ -234,9 +234,9 @@ router.get('/post/userpublicimg', (req, res) => {
                 if (err) return res.status(500).send('server error')
                 var imagedir
                 rows.map(img => {
-                    fs.writeFileSync(path.join(__dirname, '../dbimages/' + img.Id_img + '-shotshare.png'), img.Data)
+                    fs.writeFileSync(path.join(__dirname, '../dbimages/' + img.Id_post + '-shotshare.png'), img.Data)
 
-                    const urlImg = 'http://62.42.95.238:9648/' + img.Id_img + '-shotshare.png'
+                    const urlImg = 'http://62.42.95.238:9648/' + img.Id_post + '-shotshare.png'
 
                     if (!imagedir) {
 
@@ -277,7 +277,7 @@ router.get('/post/userpublicimg', (req, res) => {
 })
 
 
-router.get('/post/follows', (req, res) => {
+router.get('/get/follows', (req, res) => {
 
     const Id_user = req.query.id_user
     const Id_segid = req.query.id_user
@@ -305,6 +305,29 @@ router.get('/post/follows', (req, res) => {
 
                 res.json(imagedir)
             })
+        })
+
+
+
+
+    })
+
+
+})
+router.delete('/delete/public', (req, res) => {
+
+    const Id_post = req.query.id_post
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send('Server Error')
+        const sql1 = 'DELETE t_publicacion, t_images FROM t_publicacion INNER JOIN t_images ON t_images.Id_post = t_publicacion.Id_post WHERE t_publicacion.Id_post = ? '
+
+        conn.query(sql1, [Id_post], (err, rows) => {
+            if (err) return res.status(500).send('Server Error')
+
+            fs.unlinkSync(path.join(__dirname, '../dbimages/' + Id_post + '-shotshare.png'))
+
+            res.send('image deleted')
         })
 
 
