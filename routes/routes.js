@@ -28,9 +28,6 @@ router.get('/', (req, res) => {
 /* Login */
 
 router.post('/login', (req, res) => {
-
-    console.log(req.body)
-
     const { Password, Email } = req.body
     const values = [Email]
 
@@ -74,7 +71,7 @@ router.post('/login', (req, res) => {
 
                         } else {
 
-                            fs.writeFileSync(path.join(__dirname, '../profileimg/' + result[0].Id_user + '-shotshare.png'), result[0].Data)
+                            fs.writeFileSync(path.join(__dirname, '../profileimgs/' + result[0].Id_user + '-shotshare.png'), result[0].Data)
                             const urlImg = 'http://62.42.95.238:9648/' + result[0].Id_user + '-shotshare.png'
                             res.status(200).json({
                                 body: {
@@ -120,7 +117,6 @@ router.post('/login', (req, res) => {
 
 router.post('/register', (req, res) => {
 
-    console.log(req.body)
 
     const Username = req.body.Username
     const PasswordNo = req.body.Password
@@ -203,13 +199,11 @@ router.post('/post/img', fileUpload, (req, res) => {
         const Data = fs.readFileSync(path.join(__dirname, '../imagenes/' + req.file.filename))
 
         conn.query('INSERT INTO t_publicacion set ?', [{ Id_user, Text, CreationDate }], (err, rows) => {
-            console.log('Error en publicar : ' + err)
             if (err) return res.status(500).send('Server Error')
 
             Id_post = rows.insertId
 
             conn.query('INSERT INTO t_images set ? ', [{ Id_post, Type, Name, Data }], (err, rows) => {
-                console.log('Error imagen ' + err)
                 if (err) return res.status(500).send('Server Error')
             })
         })
@@ -224,7 +218,6 @@ router.post('/post/img', fileUpload, (req, res) => {
 router.get('/get/userpublicimg', (req, res) => {
 
     const value = req.query.id_user
-    console.log('el usuario de la peticion es: ' + value)
 
     req.getConnection((err, conn) => {
         if (err) return res.status(500).send('server error')
@@ -294,7 +287,7 @@ router.get('/get/follows', (req, res) => {
         conn.query(sql1, [Id_user], (err, rows) => {
             if (err) return res.status(500).send('Server Error')
             outRow1 = rows[0].Siguiendo
-            conn.query(sql2, [Id_segid ], (err, rows) => {
+            conn.query(sql2, [Id_segid], (err, rows) => {
                 if (err) return res.status(500).send('Server Error')
                 outRow2 = rows[0].Seguidores
                 imagedir = [{
@@ -333,6 +326,115 @@ router.delete('/delete/public', (req, res) => {
 
 
 
+    })
+
+
+})
+
+router.post('/post/imgperf', fileUpload, (req, res) => {
+
+    const Id_user = req.query.id_user
+    const DATA = fs.readFileSync(path.join(__dirname, '../imagenes/' + req.file.filename))
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send('Server Error')
+
+        conn.query('UPDATE t_usuarios SET DATA = ? WHERE Id_user = ?', [DATA, Id_user], (err, rows) => {
+            if (err) return res.status(500).send('Server Error')
+
+        })
+
+
+        res.status(200).send('ok')
+    })
+
+
+})
+
+router.post('/post/username', (req, res) => {
+
+    const Id_user = req.query.id_user;
+    const Username = req.query.username;
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send('Server Error')
+
+        conn.query('UPDATE t_usuarios SET Username = ? WHERE Id_user = ?', [Username, Id_user], (err, rows) => {
+            if (err) return res.status(500).send('Server Error')
+
+        })
+
+
+        res.status(200).send('ok')
+    })
+
+
+})
+
+router.get('/get/allusername', (req, res) => {
+
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send('Server Error')
+
+        conn.query('SELECT Username FROM t_usuarios', (err, rows) => {
+            if (err) return res.status(500).send('Server Error')
+
+            var jsonalluser
+
+            rows.map(username => {
+                if (!jsonalluser) {
+
+                    jsonalluser = [
+                        {
+                            Username: username.Username
+                        }
+                    ]
+
+                } else {
+
+                    jsonalluser.push(
+                        {
+                            Username: username.Username
+                        })
+
+                }
+            })
+
+
+            res.json(jsonalluser)
+        })
+    })
+
+
+})
+
+router.get('/get/perfimgch', (req, res) => {
+
+    const Id_user = req.query.id_user;
+
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send('Server Error')
+
+        conn.query('SELECT DATA FROM t_usuarios WHERE Id_user = ?', [Id_user], (err, rows) => {
+            if (err) return res.status(500).send('Server Error')
+
+            if (!rows[0].DATA) {
+
+                const urlImg = 'http://62.42.95.238:9648/noprofilephoto.png'
+
+                res.status(200).json({ urlImg })
+
+            } else {
+
+                fs.writeFileSync(path.join(__dirname, '../profileimgs/' + Id_user + '-shotshare.png'), rows[0].DATA)
+                const urlImg = 'http://62.42.95.238:9648/' + Id_user + '-shotshare.png'
+                res.status(200).json({ urlImg })
+
+            }
+
+        })
     })
 
 
