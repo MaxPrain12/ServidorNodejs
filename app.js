@@ -1,5 +1,5 @@
 var express = require('express')
-var mysql = require('mysql');
+var mysql = require('mysql2');
 var myconn = require('express-myconnection')
 var cors = require('cors')
 const path = require('path')
@@ -19,7 +19,7 @@ app.use(myconn(mysql, {
     database:'red_social',
     user:'advo',
     password:'qwerty1217.',
-    port: 3306  
+    charset: 'utf8mb4' 
 
 }))
 
@@ -28,6 +28,7 @@ app.use(myconn(mysql, {
 app.use(cors())
 app.use(express.static(path.join(__dirname, 'dbimages')))
 app.use(express.static(path.join(__dirname, 'profileimgs')))
+app.use(express.static(path.join(__dirname, 'gameimg')))
 
 /* Creamos las policy cors de nuestro servidor */
 
